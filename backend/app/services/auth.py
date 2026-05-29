@@ -21,6 +21,25 @@ router = APIRouter()
 # Createa new user document if the user is new
 # Return the user's accountID that would be used to complete the login
 # Verify OTP and authenticate to login
+def create_account(payload: SignUp) -> dict[str, str]:
+    # Create the user account in Appwrite auth
+    new_user = users_service.create(
+        user_id = ID.unique(),
+        email = payload.email,
+        password = payload.password,
+        name = payload.name
+    )
+
+    generated_user_id = new_user.id
+
+    # Create the user document and save to db
+    save_user_to_db(payload, user_id=generated_user_id)
+
+    return {
+        "verification_status": "pending",
+        "message": "User created successfully. Please verify your email to complete the registration process.",
+        "user_id": generated_user_id
+    }       
 
 @router.post("/")
 def sign_up(payload: SignUp) -> dict[str, str]:
@@ -34,24 +53,8 @@ def sign_up(payload: SignUp) -> dict[str, str]:
         )
 
     try:
-        # Create the user account in Appwrite auth
-        new_user = users_service.create(
-            user_id = ID.unique(),
-            email = payload.email,
-            password = payload.password,
-            name = payload.name
-        )
-
-        generated_user_id = new_user.id
-
-        # Create the user document and save to db
-        save_user_to_db(payload, user_id=generated_user_id)
-
-        return {
-            "verification_status": "pending",
-            "message": "User created successfully",
-            "user_id": generated_user_id
-        }       
+        # Create the user account in Appwrite auth and save to db
+        return create_account(payload)     
     
     except Exception as e:
         raise HTTPException(
