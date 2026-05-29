@@ -27,26 +27,34 @@ async def sign_up(payload: SignUp) -> dict[str, str]:
     # Check if the user exists or not (to create a user document or not)
     existing_user = get_user_by_email(payload.email)
 
-    if not existing_user:
-        try:
-            # Create the user account in Appwrite auth
-            user = users_service.create(
-                user_id = ID.unique,
-                email = payload.email,
-                password = payload.password,
-                name = payload.name
-            )
+    if existing_user:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="An account with this email address already exists."
+        )
 
-            generated_user_id = user['$id']
+    try:
+        # Create the user account in Appwrite auth
+        new_user = users_service.create(
+            user_id = ID.unique(),
+            email = payload.email,
+            password = payload.password,
+            name = payload.name
+        )
 
-            # Create the user document and save to db
-            save_user_to_db(payload, user_id=generated_user_id)
+        generated_user_id = new_user.id
 
-            return {
-                "status": "pending",
-                "message": "User created successfully",
-                "user_id": generated_user_id
-            }       
-        
-        except Exception as e:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error creating user account {e}")
+        # Create the user document and save to db
+        save_user_to_db(payload, user_id=generated_user_id)
+
+        return {
+            "status": "pending",
+            "message": "User created successfully",
+            "user_id": generated_user_id
+        }       
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Registration execution pipeline failed: {str(e)}"
+        )
