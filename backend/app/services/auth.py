@@ -23,7 +23,7 @@ router = APIRouter()
 # Verify OTP and authenticate to login
 
 @router.post("/")
-async def sign_up(payload: SignUp) -> dict[str, str]:
+def sign_up(payload: SignUp) -> dict[str, str]:
     # Check if the user exists or not (to create a user document or not)
     existing_user = get_user_by_email(payload.email)
 
@@ -48,7 +48,7 @@ async def sign_up(payload: SignUp) -> dict[str, str]:
         save_user_to_db(payload, user_id=generated_user_id)
 
         return {
-            "status": "pending",
+            "verification_status": "pending",
             "message": "User created successfully",
             "user_id": generated_user_id
         }       
