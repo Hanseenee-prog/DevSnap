@@ -22,7 +22,7 @@ def sign_up(payload: SignUp) -> dict[str, str]:
         new_user_id = create_account(payload)
 
         if new_user_id:
-            otp = send_verification_otp(new_user_id)
+            otp = send_verification_otp(new_user_id, payload.email)
 
         return {
             "message": f"User created successfully. Please verify your email to complete the registration process. {otp}",

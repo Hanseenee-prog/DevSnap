@@ -13,14 +13,16 @@ def send_mail(
     email: EmailStr,
     subject: str,
     html: str,
+    otp: str,
 ) -> Dict:
     try:
         params: resend.Emails.SendParams = {
-            "from": "Social App <email@stacksnap.dev>",
+            "from": "Social App <onboarding@resend.dev>",
             "to": [email],
             "subject": subject,
-            "html": f"<strong>{html}</strong>",
+            "html": f"<span><p>{html}</p><br><h1>{otp}</h1></span>",
         }
+        
         email: resend.Emails.SendResponse = resend.Emails.send(params)
 
         print(email)
