@@ -6,3 +6,4 @@ appwrite==18.1.0
 python-dotenv==1.2.2
 pillow==12.2.0
 email-validator
+resend==2.30.2
