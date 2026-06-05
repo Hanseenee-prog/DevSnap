@@ -27,7 +27,8 @@ def send_verification_otp(user_id: str, email: EmailStr) -> None:
         send_mail(
             email,
             "Email Verification OTP",
-            f"Your OTP for email verification is: {token.secret}"
+            "Your OTP for email verification is: ",
+            token.secret
         )
 
         print(f"Verification OTP sent successfully to user ID: {token}")
