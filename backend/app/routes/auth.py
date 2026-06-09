@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from pydantic import EmailStr
 from app.services.db import get_user_by_email
 from app.config.appwrite import users_service, account
 from app.schemas.auth import SignUp, SignIn
@@ -6,6 +7,7 @@ from app.services.auth_service import create_account, send_verification_otp
 
 router = APIRouter()
 
+# POST /signup?payload={}
 @router.post("/signup", tags=["Sign up"])
 def sign_up(payload: SignUp) -> dict[str, str]:
     # Check if the user exists or not (to create a user document or not)
@@ -36,29 +38,7 @@ def sign_up(payload: SignUp) -> dict[str, str]:
             detail=f"Registration execution pipeline failed: {str(e)}"
         )
 
-@router.post("/verify-email", tags=["Verify email"])
-def verify_email(user_id: str, otp: str) -> dict[str, str]:
-    try:
-        # create a session for the user after verifying the otp
-        session = account.create_session(user_id, otp)
-
-        # Update email verification status
-        if session:
-            users_service.update_email_verification(user_id, True)
-
-        return { 
-            "userId": user_id,
-            "sessionId": session.id,
-            "message": "Email verified successfully. You are now logged in.",
-            "verification_status": "true"
-        }
-    
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail=f"Email verification failed: {str(e)}"
-        )
-
+# POST /signin?payload={}
 @router.post("/signin", tags=["Sign in"])
 def signin(payload: SignIn):
     # Check if the email exists
@@ -88,6 +68,7 @@ def signin(payload: SignIn):
             detail=f"Sign in failed: {str(e)}"
         )
 
+# POST /signout?user_id={user_id}&session_id={session_id}
 @router.post("/signout", tags=["Sign Out"])
 def sign_out(user_id: str, session_id: str):
     try:
@@ -99,4 +80,44 @@ def sign_out(user_id: str, session_id: str):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to logout {str(e)}"
+        )
+
+# POST /verify-email?user_id={user_id}&otp={otp}
+@router.post("/verify-email", tags=["Verify email"])
+def verify_email(user_id: str, otp: str) -> dict[str, str]:
+    try:
+        # create a session for the user after verifying the otp
+        session = account.create_session(user_id, otp)
+
+        # Update email verification status
+        if session:
+            users_service.update_email_verification(user_id, True)
+
+        return { 
+            "userId": user_id,
+            "sessionId": session.id,
+            "message": "Email verified successfully. You are now logged in.",
+            "verification_status": "true"
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Email verification failed: {str(e)}"
+        )
+
+@router.post("/verify-email/resend-otp", tags=["Verify email"])
+def resend_verification_otp(user_id: str, email: EmailStr) -> dict[str, str]:
+    try:
+        otp = send_verification_otp(user_id, email)
+
+        return {
+            "message": f"Verification OTP resent successfully. {otp}",
+            "verification_status": "pending"
+        }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=f"Failed to resend verification OTP: {str(e)}"
         )

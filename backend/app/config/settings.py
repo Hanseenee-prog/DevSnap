@@ -9,7 +9,9 @@ class Settings:
     APPWRITE_API_KEY: str = os.getenv('APPWRITE_API_KEY')
 
     DATABASE_ID: str = os.getenv('APPWRITE_DATABASE_ID')
+    
     APPWRITE_USERS_COLLECTION_ID: str = os.getenv('APPWRITE_USERS_COLLECTION_ID')
+    APPWRITE_OTP_METADATA_COLLECTION_ID: str = os.getenv('APPWRITE_OTP_METADATA_COLLECTION_ID')
 
     SENDER_EMAIL: str = os.getenv('SENDER_EMAIL')
     SENDER_PASSWORD: str = os.getenv('SENDER_PASSWORD')
